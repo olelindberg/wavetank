@@ -2,8 +2,8 @@ from time import sleep
 import pigpio
 import numpy as np
 
-DIR = 17     # Direction GPIO Pin
-STEP = 4    # Step GPIO Pin
+DIR    = 17  # Direction GPIO Pin
+STEP   = 4   # Step GPIO Pin
 SWITCH = 16  # GPIO pin of switch
 
 # Connect to pigpiod daemon
@@ -43,8 +43,8 @@ def generate_ramp(ramp):
     # Generate a wave per ramp level
     for i in range(length):
         frequency = ramp[i][0]
-        micros = int(500000 / frequency)
-        wf = []
+        micros = int(500000 / frequency)  # how many micro seconds for one step
+        wf     = []
         wf.append(pigpio.pulse(1 << STEP, 0, micros))  # pulse on
         wf.append(pigpio.pulse(0, 1 << STEP, micros))  # pulse off
         pi.wave_add_generic(wf)
@@ -63,18 +63,24 @@ def generate_ramp(ramp):
 # Ramp up
 
 def runStepper():
-    len1 = 20
+
+    amplitude = 15000
+    numSteps  = 20
+    dx    = 1/(numSteps+1)
+    kx    = dx/np.pi*5
+    
+    
     Vector = []
     VectorBack = []
-    for x in range(len1):
+    for x in range(numSteps):
         Vector.append([0,0])
         VectorBack.append([0,0])
         #Vector[x].append([0,0])
-    for x in range(len1):
-        val = np.sin((x+1)/np.pi/(len1+1)*10/2)*15000
+    for x in range(numSteps):
+        val = amplitude*np.sin(kx*(x+1))
         Vector[x][0] = val.astype(int)
         Vector[x][1] = val.astype(int)/25
-        val = np.sin(((x+len1)+1)/np.pi/(len1+1)*10/2)*15000
+        val = amplitude*np.sin(kx*(x+numSteps+1))
         VectorBack[x][0] = val.astype(int)
         VectorBack[x][1] = Vector[x][1]
 
